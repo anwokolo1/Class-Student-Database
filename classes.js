@@ -6,8 +6,8 @@ const SEX = {
 
 class Class {
     constructor(teachers, students = null) {
-        this.teachers;
-        this.students;
+        this.teachers = new Map();
+        this.students = new Map();
         this.classSize = 0;
         
         for (let teacher in teachers) this.addTeacher(teacher);
@@ -15,18 +15,22 @@ class Class {
     }
 
     addStudent(student=null) { // return the added student
-        if (student !== null && student instanceof Student) {
-            if (this.students.includes(student.getID())) return student;
-            else throw new IDConflictError("Student ID already exists");
+        if (!(student instanceof Student)) throw new TypeError(`student not of type Student but of type ${typeof(student)}`);
+        let myStudent;
+        if (student && !this.students.includes(student.getID())) {
+            this.students.set(student.ID, student);
+            myStudent = student;
         }
-
+        else if (!student) {myStudent = new Student();}
+        else {throw new IDConflictError("Student ID already exists");}
+    
         this.classSize++;
-
-        return new Student();
+        return myStudent;
     }
 
     removeStudent(ID) {
-        
+        if (!this.students.has(ID)) throw new NullIDError(`Student ID ${ID} doesn't exist`);
+        this.students.delete(ID);
         this.classSize--;
     }
 
@@ -36,12 +40,22 @@ class Class {
      * @returns 
      */
     addTeacher(teacher=null) { // return the added tacher
-        if (teacher !== null && teacher instanceof Teacher) return teacher;
+        if (!(teacher instanceof Student)) throw new TypeError(`student not of type Student but of type ${typeof(teacher)}`);
+        let myTeacher;
+        if (teacher && !this.teachers.includes(teacher.getID())) {
+            this.teachers.set(teacher.ID, teacher);
+            myTeacher = teacher;
+        }
+        else if (!teacher) {myTeacher = new Student();}
+        else {throw new IDConflictError("Student ID already exists");}
+    
         this.classSize++;
-        return new Teacher();
+        return myTeacher;
     }
 
     removeTeacher(ID) {
+        if (!this.teachers.has(ID)) throw new NullIDError(`Teacher ID ${ID} doesn't exist`);
+        this.teachers.delete(ID);
         this.classSize--;
     }
 
@@ -65,9 +79,9 @@ class Entity {
 
         this.setName(name);
         this.setNickname(nickname);
-        this.setSex(sex);
-        this.setEmail(email);
-        this.setID(ID);
+        if (sex) this.setSex(sex);
+        if (email) this.setEmail(email);
+        if (ID) this.setID(ID);
     }
 
     setName(name) {this.name = name;}
@@ -84,7 +98,11 @@ class Entity {
     }
 
     generateID() {
+        let ID; 
 
+        ID = Math.floor((Math.random() * Math.pow(10, 9)));
+
+        return ID;
     }
 
     // returns all of these formattetd
@@ -95,6 +113,7 @@ class Entity {
     getID() {if (!this.ID) return "N/A"; else return this.ID;}
 
     toString() {
+
     }
 }
 
@@ -114,6 +133,8 @@ class Teacher extends Entity {
 }
 
 class IDConflictError extends Error {}
+
+class NullIDError extends Error{}
 
 class BadInputError extends Error {}
 
