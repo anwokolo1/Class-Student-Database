@@ -4,6 +4,12 @@ const SEX = {
     INTERSEX: 2
 }
 
+function createHeader(title) {
+    let header = document.createElement("th");
+    header.textContent = title;
+    return header
+}
+
 class Class {
     constructor(teachers, students = null) {
         this.teachers = new Map();
@@ -59,16 +65,31 @@ class Class {
         this.classSize--;
     }
 
-    static display() {/*displays HTML table*/}
-    static import(JSONFile) {/*imports table and displays it*/}
+    static display() {
+        /*displays HTML table*/
+
+        //display Teacher table first
+        let br = document.createElement("br");
+        teacherTable.append(createHeader("Teachers"));
+        for (let teacher in this.teachers) {
+            teacherTable.append(teacher.element);
+        }
+
+        studentTable.append(createHeader("Students"));
+        for (let student in this.students) {
+            studentTable.append(student.element);
+        }
+    }
+    static import(JSONFile) {
+        /*imports table and displays it*/
+    }
     static export() {
         /*exports current class object as JSONFILE*/
     }
 }
 
 class Entity {
-    ID;
-    ID_VALIDATION = /^\d+9/; // assume all schools use this scheme
+    ID_VALIDATION = /^\d{0,9}/; // assume all schools use this scheme
 
     constructor(name = "", nickname = "", sex=null, email="", ID=null) {
         this.name;
@@ -76,6 +97,7 @@ class Entity {
         this.sex;
         this.email;
         this.ID;
+        this.element;
 
         this.setName(name);
         this.setNickname(nickname);
@@ -84,7 +106,7 @@ class Entity {
         if (ID) this.setID(ID);
     }
 
-    setName(name) {this.name = name;}
+    setName(name) {this.name = name; }
     setNickname(nickname) {this.nickname = nickname;}
     setSex(sex) {
         if (sex && !(sex instanceof SEX)) throw new BadInputError(`Invalid input. Type of sex = ${typeof(sex)}`);
@@ -93,14 +115,15 @@ class Entity {
     setEmail(email) {this.email = email;}
     setID(ID) {
         //check if ID fits requirements using regex or smth
-        if (typeof(ID) === String && this.ID_VALIDATION.test(ID)) this.ID = ID;
+        console.log(this.ID_VALIDATION.test(ID));
+        if (ID instanceof String && this.ID_VALIDATION.test(ID)) this.ID = ID;
         else throw new BadInputError("Bad formatting of ID. Needs to be 9 digit integer of type String.")
     }
 
     generateID() {
         let ID; 
 
-        ID = Math.floor((Math.random() * Math.pow(10, 9)));
+        ID = new String(Math.floor((Math.random() * Math.pow(10, 9))));
 
         return ID;
     }
@@ -119,16 +142,31 @@ class Entity {
 
 class Student extends Entity {
     constructor(name = "", nickname = "", sex=null, email="", ID=null) {
-        super(name, nickname, sex, email, ID);
+
+        super(name, nickname, sex, email, ID)
+        this.element = document.createElement("tr");
+        
+        // assign data cells
+        for (let i = 0; i < 5; i ++) {
+            let cell = document.createElement("td");
+            let input = document.createElement("input")
+            input.type = "text";
+
+            cell.append(input);
+            this.element.append(cell);
+        }
     }
 }
 
 class Teacher extends Entity {
+
     constructor(name = "", nickname = "", sex=null, email="", phone=null, ID=null) {
+        this.PROPERTIES.push("phone");
         super(name, nickname, sex, email, ID);
         this.phone = phone;
     }
 
+    setPhone(phone) {this.phone = phone;}
     getPhone() {if (!this.phone) return "N/A"; else return this.phone;}
 }
 
